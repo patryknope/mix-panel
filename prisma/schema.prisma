@@ -1,0 +1,170 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  steamId       String    @unique
+  name          String
+  avatar        String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  teams         TeamPlayer[]
+  createdTeams  Team[]      @relation("TeamCreator")
+  createdMatches Match[]    @relation("MatchCreator")
+  servers       Server[]
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+model Team {
+  id          String    @id @default(cuid())
+  name        String
+  tag         String?
+  flag        String?   // Country code
+  logo        String?
+  creatorId   String
+  creator     User      @relation("TeamCreator", fields: [creatorId], references: [id])
+  public      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  players     TeamPlayer[]
+  matchesAsTeam1 Match[] @relation("Team1")
+  matchesAsTeam2 Match[] @relation("Team2")
+}
+
+model TeamPlayer {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  captain   Boolean  @default(false)
+  coach     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+}
+
+model Server {
+  id            String    @id @default(cuid())
+  name          String
+  ip            String
+  port          Int
+  rconPassword  String
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  public        Boolean   @default(false)
+  inUse         Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  matches       Match[]
+
+  @@unique([ip, port])
+}
+
+model Match {
+  id              String        @id @default(cuid())
+  serverId        String?
+  server          Server?       @relation(fields: [serverId], references: [id])
+  team1Id         String
+  team1           Team          @relation("Team1", fields: [team1Id], references: [id])
+  team2Id         String
+  team2           Team          @relation("Team2", fields: [team2Id], references: [id])
+  creatorId       String
+  creator         User          @relation("MatchCreator", fields: [creatorId], references: [id])
+  status          MatchStatus   @default(PENDING)
+  series          MatchSeries   @default(BO1)
+  apiKey          String        @unique
+  
+  // Match config
+  mapPool         String[]      @default(["de_ancient", "de_anubis", "de_dust2", "de_inferno", "de_mirage", "de_nuke", "de_vertigo"])
+  mapBans         String[]      @default([])
+  mapPicks        String[]      @default([])
+  sideChoice      String?       // team1 or team2
+  knifeRound      Boolean       @default(true)
+  overtime        Boolean       @default(true)
+  
+  // Match results
+  team1Score      Int           @default(0)
+  team2Score      Int           @default(0)
+  winner          String?       // team1Id or team2Id
+  canceledAt      DateTime?
+  startedAt       DateTime?
+  endedAt         DateTime?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  mapStats        MapStat[]
+  playerStats     PlayerStat[]
+}
+
+enum MatchStatus {
+  PENDING
+  LIVE
+  FINISHED
+  CANCELED
+}
+
+enum MatchSeries {
+  BO1
+  BO2
+  BO3
+  BO5
+}
+
+model MapStat {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  mapNumber   Int
+  mapName     String
+  team1Score  Int       @default(0)
+  team2Score  Int       @default(0)
+  winner      String?   // team1Id or team2Id
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  @@unique([matchId, mapNumber])
+}
+
+model PlayerStat {
+  id            String    @id @default(cuid())
+  matchId       String
+  match         Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  steamId       String
+  name          String
+  teamId        String
+  mapNumber     Int?
+  
+  // Stats
+  kills         Int       @default(0)
+  deaths        Int       @default(0)
+  assists       Int       @default(0)
+  flashAssists  Int       @default(0)
+  headshots     Int       @default(0)
+  damage        Int       @default(0)
+  rating        Float     @default(0)
+  adr           Float     @default(0)
+  kast          Float     @default(0)
+  
+  createdAt     DateTime  @default(now())
+
+  @@index([matchId, steamId])
+}
