@@ -93,9 +93,9 @@ model Match {
   apiKey          String        @unique
   
   // Match config
-  mapPool         String[]      @default(["de_ancient", "de_anubis", "de_dust2", "de_inferno", "de_mirage", "de_nuke", "de_vertigo"])
-  mapBans         String[]      @default([])
-  mapPicks        String[]      @default([])
+  mapPool         Json          @default("[\"de_ancient\", \"de_anubis\", \"de_dust2\", \"de_inferno\", \"de_mirage\", \"de_nuke\", \"de_vertigo\"]")
+  mapBans         Json          @default("[]")
+  mapPicks        Json          @default("[]")
   sideChoice      String?       // team1 or team2
   knifeRound      Boolean       @default(true)
   overtime        Boolean       @default(true)

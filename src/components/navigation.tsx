@@ -16,7 +16,7 @@ import { Home, Trophy, Users, Server, Settings, LogOut, LogIn } from 'lucide-rea
 
 export function Navigation() {
   const { data: session, status } = useSession()
-// xd
+
   return (
     <nav className="border-b bg-background">
       <div className="container mx-auto px-4">

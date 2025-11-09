@@ -1,4 +1,4 @@
-import { Rcon } from 'node-rcon'
+import Rcon from 'rcon'
 
 export interface ServerConfig {
   ip: string
@@ -7,10 +7,12 @@ export interface ServerConfig {
 }
 
 export class RconConnection {
-  private rcon: Rcon
+  private rcon: any
   private connected: boolean = false
+  private config: ServerConfig
 
   constructor(config: ServerConfig) {
+    this.config = config
     this.rcon = new Rcon(config.ip, config.port, config.rconPassword)
     
     this.rcon.on('auth', () => {
@@ -18,7 +20,7 @@ export class RconConnection {
       console.log(`RCON authenticated to ${config.ip}:${config.port}`)
     })
     
-    this.rcon.on('error', (err) => {
+    this.rcon.on('error', (err: any) => {
       console.error(`RCON error for ${config.ip}:${config.port}:`, err)
       this.connected = false
     })
@@ -47,7 +49,7 @@ export class RconConnection {
         resolve()
       })
 
-      this.rcon.once('error', (err) => {
+      this.rcon.once('error', (err: any) => {
         clearTimeout(timeout)
         reject(err)
       })
@@ -60,7 +62,7 @@ export class RconConnection {
     }
 
     return new Promise((resolve, reject) => {
-      this.rcon.send(command, (err, res) => {
+      this.rcon.send(command, (err: any, res: string) => {
         if (err) {
           reject(err)
         } else {
