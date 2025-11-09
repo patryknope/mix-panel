@@ -110,16 +110,17 @@ export const authOptions: NextAuthOptions = {
     },
   ],
   callbacks: {
-    async signIn({ user, account, profile }: any) {
+    async signIn({ user, account }: any) {
       if (account?.provider === 'steam') {
         try {
-          // Extract Steam ID - next-auth-steam provides it in user.id
-          const steamId = user.id || profile?.steamid || profile?.id
+          const steamId = user.steamId || user.id
 
           if (!steamId) {
-            console.error('No Steam ID found in user profile')
+            console.error('No Steam ID found:', user)
             return false
           }
+
+          console.log('Steam login attempt for:', steamId, user)
 
           // Check if user exists
           const existingUser = await prisma.user.findUnique({
@@ -131,20 +132,22 @@ export const authOptions: NextAuthOptions = {
             await prisma.user.create({
               data: {
                 steamId: String(steamId),
-                name: user.name || profile?.personaname || 'Steam User',
-                avatar: user.image || profile?.avatarfull || profile?.avatar,
+                name: user.name || 'Steam User',
+                avatar: user.avatar,
                 role: 'USER',
               },
             })
+            console.log('Created new user:', steamId)
           } else {
             // Update existing user
             await prisma.user.update({
               where: { steamId: String(steamId) },
               data: {
-                name: user.name || profile?.personaname || existingUser.name,
-                avatar: user.image || profile?.avatarfull || profile?.avatar || existingUser.avatar,
+                name: user.name || existingUser.name,
+                avatar: user.avatar || existingUser.avatar,
               },
             })
+            console.log('Updated existing user:', steamId)
           }
 
           return true
