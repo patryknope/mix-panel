@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import SteamProvider from 'next-auth-steam'
 import prisma from './prisma'
 
 declare module 'next-auth' {
@@ -22,67 +23,43 @@ declare module 'next-auth' {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
-    {
-      id: 'steam',
-      name: 'Steam',
-      type: 'oauth',
-      authorization: {
-        url: 'https://steamcommunity.com/openid/login',
-        params: {
-          'openid.ns': 'http://specs.openid.net/auth/2.0',
-          'openid.mode': 'checkid_setup',
-          'openid.return_to': process.env.STEAM_CALLBACK_URL || 'http://localhost:3000/api/auth/callback/steam',
-          'openid.realm': process.env.NEXTAUTH_URL || 'http://localhost:3000',
-          'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
-          'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
-        },
-      },
-      idToken: true,
-      checks: ['none'],
-      clientId: 'none',
-      clientSecret: 'none',
-      profile(profile: any) {
-        return {
-          id: profile.steamid,
-          steamId: profile.steamid,
-          name: profile.personaname,
-          avatar: profile.avatarfull,
-          role: 'USER',
-        }
-      },
-    },
+    SteamProvider(process.env.NEXTAUTH_URL || 'http://localhost:3000', process.env.STEAM_API_KEY!),
   ],
   callbacks: {
-    async signIn({ user, account }: any) {
+    async signIn({ user, account, profile }: any) {
       if (account?.provider === 'steam') {
         try {
-          // Extract Steam ID from the identity URL
-          const steamId = account.id || user.id
-          
+          // Extract Steam ID - next-auth-steam provides it in user.id
+          const steamId = user.id || profile?.steamid || profile?.id
+
+          if (!steamId) {
+            console.error('No Steam ID found in user profile')
+            return false
+          }
+
           // Check if user exists
           const existingUser = await prisma.user.findUnique({
-            where: { steamId },
+            where: { steamId: String(steamId) },
           })
 
           if (!existingUser) {
             // Create new user
             await prisma.user.create({
               data: {
-                steamId,
-                name: user.name || 'Unknown',
-                avatar: user.avatar,
+                steamId: String(steamId),
+                name: user.name || profile?.personaname || 'Steam User',
+                avatar: user.image || profile?.avatarfull || profile?.avatar,
                 role: 'USER',
               },
             })
           } else {
             // Update existing user
             await prisma.user.update({
-              where: { steamId },
+              where: { steamId: String(steamId) },
               data: {
-                name: user.name || existingUser.name,
-                avatar: user.avatar || existingUser.avatar,
+                name: user.name || profile?.personaname || existingUser.name,
+                avatar: user.image || profile?.avatarfull || profile?.avatar || existingUser.avatar,
               },
             })
           }
@@ -113,16 +90,13 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, profile }: any) {
       if (user) {
-        token.sub = user.steamId
+        // Store Steam ID in token.sub
+        token.sub = user.id || user.steamId || profile?.steamid
       }
       return token
     },
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
   },
   session: {
     strategy: 'jwt',
