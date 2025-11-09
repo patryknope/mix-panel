@@ -1,4 +1,13 @@
 import { Match, Team, TeamPlayer } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+
+// Helper to safely convert Json to string array
+function jsonToStringArray(json: Prisma.JsonValue): string[] {
+  if (Array.isArray(json)) {
+    return json.filter((item): item is string => typeof item === 'string')
+  }
+  return []
+}
 
 export interface MatchConfig {
   matchid: string
@@ -77,7 +86,7 @@ export function generateMatchConfig(
     coaches_per_team: 1,
     skip_veto: false,
     side_type: match.knifeRound ? 'knife' : 'standard',
-    maplist: match.mapPool,
+    maplist: jsonToStringArray(match.mapPool),
     team1: {
       name: match.team1.name,
       tag: match.team1.tag || undefined,
