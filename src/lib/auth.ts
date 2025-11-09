@@ -1,7 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import SteamProvider from 'next-auth-steam'
 import prisma from './prisma'
+import axios from 'axios'
 
 declare module 'next-auth' {
   interface Session {
@@ -24,7 +23,89 @@ declare module 'next-auth' {
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    SteamProvider(process.env.NEXTAUTH_URL || 'http://localhost:3000', process.env.STEAM_API_KEY!),
+    {
+      id: 'steam',
+      name: 'Steam',
+      type: 'oauth',
+      authorization: {
+        url: 'https://steamcommunity.com/openid/login',
+        params: {
+          'openid.mode': 'checkid_setup',
+          'openid.ns': 'http://specs.openid.net/auth/2.0',
+          'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
+          'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
+        },
+      },
+      token: {
+        async request(context: any) {
+          // Steam uses OpenID, doesn't need token exchange
+          const params = new URLSearchParams(context.params)
+
+          // Validate Steam OpenID response
+          const claimedId = params.get('openid.claimed_id')
+          if (!claimedId) {
+            throw new Error('No claimed_id in response')
+          }
+
+          // Extract Steam ID from claimed_id URL
+          const steamIdMatch = claimedId.match(/(\d+)$/)
+          if (!steamIdMatch) {
+            throw new Error('Invalid Steam ID')
+          }
+
+          return {
+            tokens: {
+              steamId: steamIdMatch[1],
+            },
+          }
+        },
+      },
+      userinfo: {
+        async request(context: any) {
+          const steamId = context.tokens.steamId
+
+          // Fetch user info from Steam API
+          try {
+            const response = await axios.get(
+              `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/`,
+              {
+                params: {
+                  key: process.env.STEAM_API_KEY,
+                  steamids: steamId,
+                },
+              }
+            )
+
+            const player = response.data.response.players[0]
+            if (!player) {
+              throw new Error('Player not found')
+            }
+
+            return {
+              id: steamId,
+              name: player.personaname,
+              image: player.avatarfull,
+              steamId: steamId,
+            }
+          } catch (error) {
+            console.error('Error fetching Steam profile:', error)
+            throw error
+          }
+        },
+      },
+      profile(profile: any) {
+        return {
+          id: profile.steamId,
+          steamId: profile.steamId,
+          name: profile.name,
+          avatar: profile.image,
+          role: 'USER',
+        }
+      },
+      checks: ['none'],
+      clientId: 'not-needed',
+      clientSecret: 'not-needed',
+    },
   ],
   callbacks: {
     async signIn({ user, account, profile }: any) {
