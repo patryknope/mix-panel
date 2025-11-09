@@ -94,7 +94,7 @@ export function Navigation() {
               </DropdownMenu>
             ) : (
               <Button
-                onClick={() => signIn('steam')}
+                onClick={() => window.location.href = '/api/auth/steam'}
                 className="flex items-center space-x-2"
               >
                 <LogIn className="h-4 w-4" />

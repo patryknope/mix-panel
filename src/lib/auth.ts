@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
 import prisma from './prisma'
-import axios from 'axios'
 
 declare module 'next-auth' {
   interface Session {
@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
       id: 'steam',
       name: 'Steam',
       type: 'oauth',
+      wellKnown: undefined,
       authorization: {
         url: 'https://steamcommunity.com/openid/login',
         params: {
@@ -40,11 +41,23 @@ export const authOptions: NextAuthOptions = {
       },
       token: {
         async request(context: any) {
-          // Steam uses OpenID, doesn't need token exchange
-          const params = new URLSearchParams(context.params)
+          // Steam returns data via query params on the callback, not in the typical OAuth flow
+          const { query } = context.provider.callbackUrl ?
+            { query: context.provider.callbackUrl } :
+            { query: context.params }
 
-          // Validate Steam OpenID response
-          const claimedId = params.get('openid.claimed_id')
+          // Get claimed_id from either query or params
+          let claimedId
+          if (typeof query === 'string') {
+            const urlParams = new URL(query).searchParams
+            claimedId = urlParams.get('openid.claimed_id')
+          } else {
+            claimedId = query?.['openid.claimed_id'] || context.params?.['openid.claimed_id']
+          }
+
+          console.log('Token request - claimedId:', claimedId)
+          console.log('Token request - full context:', JSON.stringify(context, null, 2))
+
           if (!claimedId) {
             throw new Error('No claimed_id in response')
           }
@@ -105,9 +118,12 @@ export const authOptions: NextAuthOptions = {
         }
       },
       checks: ['none'],
-      clientId: 'not-needed',
-      clientSecret: 'not-needed',
-    },
+      client: {
+        token_endpoint_auth_method: 'none',
+      },
+      clientId: 'steam',
+      clientSecret: 'steam',
+    } as any,
   ],
   callbacks: {
     async signIn({ user, account }: any) {
