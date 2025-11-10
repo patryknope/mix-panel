@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Home, Trophy, Users, Server, Settings, LogOut, LogIn } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export function Navigation() {
   const { data: session, status } = useSession()
@@ -54,6 +56,8 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <LanguageSwitcher />
+            <ThemeToggle />
             {status === 'loading' ? (
               <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
             ) : status === 'authenticated' ? (

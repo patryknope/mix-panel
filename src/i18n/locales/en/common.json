@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "matches": "Matches",
+    "teams": "Teams",
+    "servers": "Servers",
+    "settings": "Settings",
+    "logout": "Log out",
+    "login": "Login with Steam"
+  },
+  "common": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "search": "Search",
+    "filter": "Filter",
+    "status": "Status",
+    "date": "Date",
+    "name": "Name",
+    "description": "Description"
+  },
+  "teams": {
+    "title": "Teams",
+    "createNew": "Create New Team",
+    "teamName": "Team Name",
+    "teamTag": "Team Tag",
+    "flag": "Flag",
+    "logo": "Logo URL",
+    "public": "Public Team",
+    "players": "Players",
+    "addPlayer": "Add Player",
+    "steamId": "Steam ID",
+    "playerName": "Player Name",
+    "matches": "Matches",
+    "created": "Created",
+    "creator": "Creator"
+  },
+  "servers": {
+    "title": "Servers",
+    "addNew": "Add New Server",
+    "serverName": "Server Name",
+    "ip": "IP Address",
+    "port": "Port",
+    "rconPassword": "RCON Password",
+    "inUse": "In Use",
+    "available": "Available"
+  },
+  "matches": {
+    "title": "Matches",
+    "createNew": "Create New Match",
+    "team1": "Team 1",
+    "team2": "Team 2",
+    "server": "Server",
+    "series": "Series Type",
+    "mapPool": "Map Pool",
+    "knifeRound": "Knife Round",
+    "overtime": "Overtime",
+    "status": {
+      "pending": "Pending",
+      "live": "Live",
+      "finished": "Finished"
+    },
+    "quickVeto": "Quick Veto",
+    "quickVetoDesc": "Create a map veto without teams",
+    "withTeams": "Match with Teams",
+    "withTeamsDesc": "Full match setup with teams"
+  },
+  "matchDetail": {
+    "matchInfo": "Match Information",
+    "configUrl": "Config URL",
+    "copyConfig": "Copy Config URL",
+    "mapStats": "Map Statistics",
+    "playerStats": "Player Statistics",
+    "kills": "Kills",
+    "deaths": "Deaths",
+    "assists": "Assists",
+    "kd": "K/D Ratio",
+    "adr": "ADR",
+    "headshots": "HS%"
+  }
+}

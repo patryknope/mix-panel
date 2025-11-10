@@ -82,15 +82,16 @@ model Match {
   id              String        @id @default(cuid())
   serverId        String?
   server          Server?       @relation(fields: [serverId], references: [id])
-  team1Id         String
-  team1           Team          @relation("Team1", fields: [team1Id], references: [id])
-  team2Id         String
-  team2           Team          @relation("Team2", fields: [team2Id], references: [id])
+  team1Id         String?
+  team1           Team?         @relation("Team1", fields: [team1Id], references: [id])
+  team2Id         String?
+  team2           Team?         @relation("Team2", fields: [team2Id], references: [id])
   creatorId       String
   creator         User          @relation("MatchCreator", fields: [creatorId], references: [id])
   status          MatchStatus   @default(PENDING)
   series          MatchSeries   @default(BO1)
   apiKey          String        @unique
+  discordWebhook  String?
   
   // Match config
   mapPool         Json          @default("[\"de_ancient\", \"de_anubis\", \"de_dust2\", \"de_inferno\", \"de_mirage\", \"de_nuke\", \"de_vertigo\"]")

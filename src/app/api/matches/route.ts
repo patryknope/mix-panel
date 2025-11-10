@@ -50,14 +50,11 @@ export async function POST(req: NextRequest) {
       mapPool,
       knifeRound,
       overtime,
+      discordWebhook,
     } = body
 
-    // Validate required fields
-    if (!team1Id || !team2Id) {
-      return NextResponse.json({ error: 'Both teams are required' }, { status: 400 })
-    }
-
-    if (team1Id === team2Id) {
+    // Validate teams if both are provided
+    if (team1Id && team2Id && team1Id === team2Id) {
       return NextResponse.json({ error: 'Teams must be different' }, { status: 400 })
     }
 
@@ -79,8 +76,8 @@ export async function POST(req: NextRequest) {
     // Create match
     const match = await prisma.match.create({
       data: {
-        team1Id,
-        team2Id,
+        team1Id: team1Id || null,
+        team2Id: team2Id || null,
         serverId: serverId || null,
         creatorId: session.user.id,
         series: series || 'BO1',
@@ -90,6 +87,7 @@ export async function POST(req: NextRequest) {
         mapPicks: JSON.stringify([]),
         knifeRound: knifeRound !== undefined ? knifeRound : true,
         overtime: overtime !== undefined ? overtime : true,
+        discordWebhook: discordWebhook || null,
       },
       include: {
         team1: true,

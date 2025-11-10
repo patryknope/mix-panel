@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import {
+  sendDiscordNotification,
+  createMatchStartEmbed,
+  createMatchEndEmbed,
+  createMapEndEmbed,
+  createQuickVetoStartEmbed,
+} from '@/lib/discord'
+import { Prisma } from '@prisma/client'
+
+function jsonToStringArray(json: Prisma.JsonValue): string[] {
+  if (Array.isArray(json)) {
+    return json.filter((item): item is string => typeof item === 'string')
+  }
+  return []
+}
 
 // MatchZy webhook event schemas
 const baseEventSchema = z.object({
@@ -133,6 +148,19 @@ export async function POST(request: NextRequest) {
             startedAt: new Date(),
           },
         })
+
+        // Send Discord notification
+        if (match.discordWebhook) {
+          const team1Name = match.team1?.name || 'Team 1'
+          const team2Name = match.team2?.name || 'Team 2'
+          const mapPool = jsonToStringArray(match.mapPool)
+
+          const embed = match.team1 && match.team2
+            ? createMatchStartEmbed(match.id, team1Name, team2Name, mapPool)
+            : createQuickVetoStartEmbed(match.id, mapPool)
+
+          await sendDiscordNotification(match.discordWebhook, { embeds: [embed] })
+        }
         break
       }
 
@@ -180,7 +208,7 @@ export async function POST(request: NextRequest) {
 
       case 'map_end': {
         const data = mapEndSchema.parse(body)
-        
+
         // Determine winner team ID
         let winnerId: string | null = null
         if (data.winner.team === data.team1.name) {
@@ -203,12 +231,32 @@ export async function POST(request: NextRequest) {
             endedAt: new Date(),
           },
         })
+
+        // Send Discord notification
+        if (match.discordWebhook) {
+          const team1Name = match.team1?.name || 'Team 1'
+          const team2Name = match.team2?.name || 'Team 2'
+          const winnerName = data.winner.team
+
+          const embed = createMapEndEmbed(
+            match.id,
+            data.map_name,
+            data.map_number,
+            team1Name,
+            team2Name,
+            data.team1.score,
+            data.team2.score,
+            winnerName
+          )
+
+          await sendDiscordNotification(match.discordWebhook, { embeds: [embed] })
+        }
         break
       }
 
       case 'series_end': {
         const data = seriesEndSchema.parse(body)
-        
+
         // Determine winner team ID
         let winnerId: string | null = null
         if (data.winner.team === data.team1.name) {
@@ -235,12 +283,35 @@ export async function POST(request: NextRequest) {
             data: { inUse: false },
           })
         }
+
+        // Send Discord notification
+        if (match.discordWebhook) {
+          const team1Name = match.team1?.name || 'Team 1'
+          const team2Name = match.team2?.name || 'Team 2'
+          const winnerName = data.winner.team
+
+          const embed = createMatchEndEmbed(
+            match.id,
+            team1Name,
+            team2Name,
+            data.team1.series_score,
+            data.team2.series_score,
+            winnerName
+          )
+
+          await sendDiscordNotification(match.discordWebhook, { embeds: [embed] })
+        }
         break
       }
 
       case 'player_stats': {
         const data = playerStatsSchema.parse(body)
-        
+
+        // Skip player stats for veto-only matches
+        if (!match.team1 || !match.team2 || !match.team1Id || !match.team2Id) {
+          break
+        }
+
         // Determine team ID
         let teamId: string
         if (data.player.team === match.team1.name) {

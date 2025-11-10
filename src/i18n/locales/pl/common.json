@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "dashboard": "Panel główny",
+    "matches": "Mecze",
+    "teams": "Drużyny",
+    "servers": "Serwery",
+    "settings": "Ustawienia",
+    "logout": "Wyloguj",
+    "login": "Zaloguj przez Steam"
+  },
+  "common": {
+    "create": "Utwórz",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "loading": "Ładowanie...",
+    "actions": "Akcje",
+    "search": "Szukaj",
+    "filter": "Filtruj",
+    "status": "Status",
+    "date": "Data",
+    "name": "Nazwa",
+    "description": "Opis"
+  },
+  "teams": {
+    "title": "Drużyny",
+    "createNew": "Utwórz nową drużynę",
+    "teamName": "Nazwa drużyny",
+    "teamTag": "Tag drużyny",
+    "flag": "Flaga",
+    "logo": "URL logo",
+    "public": "Publiczna drużyna",
+    "players": "Gracze",
+    "addPlayer": "Dodaj gracza",
+    "steamId": "Steam ID",
+    "playerName": "Nazwa gracza",
+    "matches": "Mecze",
+    "created": "Utworzona",
+    "creator": "Twórca"
+  },
+  "servers": {
+    "title": "Serwery",
+    "addNew": "Dodaj nowy serwer",
+    "serverName": "Nazwa serwera",
+    "ip": "Adres IP",
+    "port": "Port",
+    "rconPassword": "Hasło RCON",
+    "inUse": "W użyciu",
+    "available": "Dostępny"
+  },
+  "matches": {
+    "title": "Mecze",
+    "createNew": "Utwórz nowy mecz",
+    "team1": "Drużyna 1",
+    "team2": "Drużyna 2",
+    "server": "Serwer",
+    "series": "Typ serii",
+    "mapPool": "Pula map",
+    "knifeRound": "Runda na noże",
+    "overtime": "Dogrywka",
+    "status": {
+      "pending": "Oczekujący",
+      "live": "Na żywo",
+      "finished": "Zakończony"
+    },
+    "quickVeto": "Szybkie veto",
+    "quickVetoDesc": "Utwórz veto map bez drużyn",
+    "withTeams": "Mecz z drużynami",
+    "withTeamsDesc": "Pełna konfiguracja meczu z drużynami"
+  },
+  "matchDetail": {
+    "matchInfo": "Informacje o meczu",
+    "configUrl": "URL konfiguracji",
+    "copyConfig": "Kopiuj URL konfiguracji",
+    "mapStats": "Statystyki map",
+    "playerStats": "Statystyki graczy",
+    "kills": "Zabójstwa",
+    "deaths": "Śmierci",
+    "assists": "Asysty",
+    "kd": "Stosunek K/D",
+    "adr": "ADR",
+    "headshots": "HS%"
+  }
+}

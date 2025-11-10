@@ -104,7 +104,10 @@ export default async function MatchesPage() {
                         <CardTitle className="flex items-center gap-2">
                           <Circle className={`h-3 w-3 ${getStatusColor(match.status)}`} />
                           <span className="text-lg">
-                            {match.team1.name} vs {match.team2.name}
+                            {match.team1 && match.team2
+                              ? `${match.team1.name} vs ${match.team2.name}`
+                              : `Quick Veto - ${match.id.slice(0, 8)}`
+                            }
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">

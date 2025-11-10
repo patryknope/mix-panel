@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Trophy } from 'lucide-react'
+import { ArrowLeft, Trophy, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
@@ -35,9 +35,12 @@ const CS2_MAPS = [
   'de_vertigo',
 ]
 
+type MatchMode = 'quick-veto' | 'with-teams'
+
 export default function CreateMatchPage() {
   const router = useRouter()
   const { data: session } = useSession()
+  const [mode, setMode] = useState<MatchMode | null>(null)
   const [loading, setLoading] = useState(false)
   const [teams, setTeams] = useState<Team[]>([])
   const [servers, setServers] = useState<Server[]>([])
@@ -48,11 +51,16 @@ export default function CreateMatchPage() {
   const [mapPool, setMapPool] = useState<string[]>(CS2_MAPS)
   const [knifeRound, setKnifeRound] = useState(true)
   const [overtime, setOvertime] = useState(true)
+  const [discordWebhook, setDiscordWebhook] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetchTeamsAndServers()
-  }, [])
+    if (mode === 'with-teams') {
+      fetchTeamsAndServers()
+    } else if (mode === 'quick-veto') {
+      fetchServers()
+    }
+  }, [mode])
 
   const fetchTeamsAndServers = async () => {
     try {
@@ -75,6 +83,18 @@ export default function CreateMatchPage() {
     }
   }
 
+  const fetchServers = async () => {
+    try {
+      const serversRes = await fetch('/api/servers')
+      if (serversRes.ok) {
+        const serversData = await serversRes.json()
+        setServers(serversData)
+      }
+    } catch (error) {
+      console.error('Error fetching servers:', error)
+    }
+  }
+
   const toggleMap = (map: string) => {
     if (mapPool.includes(map)) {
       setMapPool(mapPool.filter((m) => m !== map))
@@ -88,16 +108,18 @@ export default function CreateMatchPage() {
     setLoading(true)
     setError('')
 
-    if (!selectedTeam1 || !selectedTeam2) {
-      setError('Please select both teams')
-      setLoading(false)
-      return
-    }
+    if (mode === 'with-teams') {
+      if (!selectedTeam1 || !selectedTeam2) {
+        setError('Please select both teams')
+        setLoading(false)
+        return
+      }
 
-    if (selectedTeam1 === selectedTeam2) {
-      setError('Teams must be different')
-      setLoading(false)
-      return
+      if (selectedTeam1 === selectedTeam2) {
+        setError('Teams must be different')
+        setLoading(false)
+        return
+      }
     }
 
     if (mapPool.length === 0) {
@@ -107,13 +129,14 @@ export default function CreateMatchPage() {
     }
 
     const data = {
-      team1Id: selectedTeam1,
-      team2Id: selectedTeam2,
+      team1Id: mode === 'with-teams' ? selectedTeam1 : null,
+      team2Id: mode === 'with-teams' ? selectedTeam2 : null,
       serverId: selectedServer || null,
       series,
       mapPool,
       knifeRound,
       overtime,
+      discordWebhook: discordWebhook || null,
     }
 
     try {
@@ -153,76 +176,154 @@ export default function CreateMatchPage() {
     )
   }
 
+  // Mode selection screen
+  if (!mode) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="mb-8">
+            <Link href="/matches">
+              <Button variant="ghost" size="sm" className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Matches
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold">Create Match</h1>
+            <p className="text-muted-foreground">
+              Choose how you want to set up your match
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card
+              className="cursor-pointer hover:border-primary transition-colors"
+              onClick={() => setMode('quick-veto')}
+            >
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <Zap className="h-8 w-8 text-yellow-500" />
+                  <CardTitle>Quick Veto</CardTitle>
+                </div>
+                <CardDescription>
+                  Create a map veto without defining teams. Perfect for quick scrims or
+                  pugs where you just need to pick/ban maps.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• No team setup required</li>
+                  <li>• Fast map veto process</li>
+                  <li>• Can add teams later</li>
+                  <li>• Great for casual matches</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:border-primary transition-colors"
+              onClick={() => setMode('with-teams')}
+            >
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <Trophy className="h-8 w-8 text-blue-500" />
+                  <CardTitle>Match with Teams</CardTitle>
+                </div>
+                <CardDescription>
+                  Full match setup with team selection, player tracking, and complete
+                  statistics. Best for competitive matches.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Full team management</li>
+                  <li>• Player statistics tracking</li>
+                  <li>• Match history</li>
+                  <li>• Complete configuration</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Match creation form
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <Link href="/matches">
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Matches
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold">Create Match</h1>
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => setMode(null)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Mode Selection
+          </Button>
+          <h1 className="text-3xl font-bold">
+            {mode === 'quick-veto' ? 'Quick Veto Setup' : 'Create Match'}
+          </h1>
           <p className="text-muted-foreground">
-            Set up a new competitive CS2 match
+            {mode === 'quick-veto'
+              ? 'Configure your map pool and veto settings'
+              : 'Set up a new competitive CS2 match'}
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Teams</CardTitle>
-              <CardDescription>Select the competing teams</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Team 1</Label>
-                <select
-                  value={selectedTeam1}
-                  onChange={(e) => setSelectedTeam1(e.target.value)}
-                  className="w-full p-2 border rounded-md bg-background"
-                  required
-                >
-                  <option value="">Select team...</option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} {team.tag && `[${team.tag}]`}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {mode === 'with-teams' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Teams</CardTitle>
+                <CardDescription>Select the competing teams</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Team 1</Label>
+                  <select
+                    value={selectedTeam1}
+                    onChange={(e) => setSelectedTeam1(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-background"
+                    required
+                  >
+                    <option value="">Select team...</option>
+                    {teams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} {team.tag && `[${team.tag}]`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="text-center text-2xl font-bold text-muted-foreground">
-                VS
-              </div>
+                <div className="text-center text-2xl font-bold text-muted-foreground">
+                  VS
+                </div>
 
-              <div className="space-y-2">
-                <Label>Team 2</Label>
-                <select
-                  value={selectedTeam2}
-                  onChange={(e) => setSelectedTeam2(e.target.value)}
-                  className="w-full p-2 border rounded-md bg-background"
-                  required
-                >
-                  <option value="">Select team...</option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} {team.tag && `[${team.tag}]`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label>Team 2</Label>
+                  <select
+                    value={selectedTeam2}
+                    onChange={(e) => setSelectedTeam2(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-background"
+                    required
+                  >
+                    <option value="">Select team...</option>
+                    {teams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} {team.tag && `[${team.tag}]`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -246,7 +347,10 @@ export default function CreateMatchPage() {
               </select>
               {servers.filter((s) => !s.inUse).length === 0 && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  No available servers. <Link href="/servers/add" className="underline">Add a server</Link>
+                  No available servers.{' '}
+                  <Link href="/servers/add" className="underline">
+                    Add a server
+                  </Link>
                 </p>
               )}
             </CardContent>
@@ -301,7 +405,7 @@ export default function CreateMatchPage() {
               <CardTitle>Match Settings</CardTitle>
               <CardDescription>Additional configuration options</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -327,19 +431,37 @@ export default function CreateMatchPage() {
                   Enable overtime (MR6)
                 </Label>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discordWebhook">Discord Webhook URL (Optional)</Label>
+                <input
+                  type="url"
+                  id="discordWebhook"
+                  value={discordWebhook}
+                  onChange={(e) => setDiscordWebhook(e.target.value)}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Receive match updates in your Discord server
+                </p>
+              </div>
             </CardContent>
           </Card>
 
           <div className="flex gap-4">
             <Button type="submit" disabled={loading} className="flex-1">
               <Trophy className="mr-2 h-4 w-4" />
-              {loading ? 'Creating...' : 'Create Match'}
+              {loading ? 'Creating...' : mode === 'quick-veto' ? 'Create Veto' : 'Create Match'}
             </Button>
-            <Link href="/matches" className="flex-1">
-              <Button type="button" variant="outline" className="w-full">
-                Cancel
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setMode(null)}
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </main>

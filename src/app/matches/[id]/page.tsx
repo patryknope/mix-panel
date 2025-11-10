@@ -114,7 +114,10 @@ export default async function MatchDetailPage({
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
                 <Circle className={`h-4 w-4 ${getStatusColor(match.status)}`} />
-                {match.team1.name} vs {match.team2.name}
+                {match.team1 && match.team2
+                  ? `${match.team1.name} vs ${match.team2.name}`
+                  : `Quick Veto - Match ${match.id.slice(0, 8)}`
+                }
               </h1>
               <p className="text-muted-foreground mt-1">
                 {match.series} Match • Created {new Date(match.createdAt).toLocaleDateString()}
@@ -143,27 +146,33 @@ export default async function MatchDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center gap-8">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">{match.team1.name}</p>
-                    <p className="text-5xl font-bold">{match.team1Score}</p>
+              {match.team1 && match.team2 ? (
+                <div className="text-center space-y-4">
+                  <div className="flex items-center justify-center gap-8">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground mb-2">{match.team1.name}</p>
+                      <p className="text-5xl font-bold">{match.team1Score}</p>
+                    </div>
+                    <div className="text-2xl font-bold text-muted-foreground">-</div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground mb-2">{match.team2.name}</p>
+                      <p className="text-5xl font-bold">{match.team2Score}</p>
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold text-muted-foreground">-</div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">{match.team2.name}</p>
-                    <p className="text-5xl font-bold">{match.team2Score}</p>
-                  </div>
+                  {match.winner && (
+                    <div className="pt-4 border-t">
+                      <p className="text-sm text-muted-foreground">Winner</p>
+                      <p className="text-lg font-semibold">
+                        {match.winner === match.team1Id ? match.team1.name : match.team2.name}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {match.winner && (
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">Winner</p>
-                    <p className="text-lg font-semibold">
-                      {match.winner === match.team1Id ? match.team1.name : match.team2.name}
-                    </p>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Quick veto mode - No team scores tracked</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -274,7 +283,7 @@ export default async function MatchDetailPage({
                       <p className="font-bold">
                         {mapStat.team1Score} - {mapStat.team2Score}
                       </p>
-                      {mapStat.winner && (
+                      {mapStat.winner && match.team1 && match.team2 && (
                         <p className="text-sm text-muted-foreground">
                           {mapStat.winner === match.team1Id ? match.team1.name : match.team2.name} won
                         </p>

@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "matches": "Matches",
+    "teams": "Teams",
+    "servers": "Server",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "login": "Mit Steam anmelden"
+  },
+  "common": {
+    "create": "Erstellen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "loading": "Laden...",
+    "actions": "Aktionen",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "status": "Status",
+    "date": "Datum",
+    "name": "Name",
+    "description": "Beschreibung"
+  },
+  "teams": {
+    "title": "Teams",
+    "createNew": "Neues Team erstellen",
+    "teamName": "Team Name",
+    "teamTag": "Team Tag",
+    "flag": "Flagge",
+    "logo": "Logo URL",
+    "public": "Öffentliches Team",
+    "players": "Spieler",
+    "addPlayer": "Spieler hinzufügen",
+    "steamId": "Steam ID",
+    "playerName": "Spielername",
+    "matches": "Matches",
+    "created": "Erstellt",
+    "creator": "Ersteller"
+  },
+  "servers": {
+    "title": "Server",
+    "addNew": "Neuen Server hinzufügen",
+    "serverName": "Servername",
+    "ip": "IP-Adresse",
+    "port": "Port",
+    "rconPassword": "RCON Passwort",
+    "inUse": "In Benutzung",
+    "available": "Verfügbar"
+  },
+  "matches": {
+    "title": "Matches",
+    "createNew": "Neues Match erstellen",
+    "team1": "Team 1",
+    "team2": "Team 2",
+    "server": "Server",
+    "series": "Serientyp",
+    "mapPool": "Map Pool",
+    "knifeRound": "Messerrunde",
+    "overtime": "Verlängerung",
+    "status": {
+      "pending": "Ausstehend",
+      "live": "Live",
+      "finished": "Beendet"
+    },
+    "quickVeto": "Schnelles Veto",
+    "quickVetoDesc": "Map-Veto ohne Teams erstellen",
+    "withTeams": "Match mit Teams",
+    "withTeamsDesc": "Vollständiges Match-Setup mit Teams"
+  },
+  "matchDetail": {
+    "matchInfo": "Match-Informationen",
+    "configUrl": "Config URL",
+    "copyConfig": "Config URL kopieren",
+    "mapStats": "Map-Statistiken",
+    "playerStats": "Spielerstatistiken",
+    "kills": "Kills",
+    "deaths": "Tode",
+    "assists": "Assists",
+    "kd": "K/D-Verhältnis",
+    "adr": "ADR",
+    "headshots": "HS%"
+  }
+}

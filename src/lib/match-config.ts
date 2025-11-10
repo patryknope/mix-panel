@@ -48,38 +48,76 @@ export interface TeamConfig {
 
 export function generateMatchConfig(
   match: Match & {
-    team1: Team & { players: (TeamPlayer & { user: { steamId: string; name: string } })[] }
-    team2: Team & { players: (TeamPlayer & { user: { steamId: string; name: string } })[] }
+    team1?: (Team & { players: (TeamPlayer & { user: { steamId: string; name: string } })[] }) | null
+    team2?: (Team & { players: (TeamPlayer & { user: { steamId: string; name: string } })[] }) | null
   },
   apiUrl: string
 ): MatchConfig {
   const numMaps = match.series === 'BO1' ? 1 : match.series === 'BO2' ? 2 : match.series === 'BO3' ? 3 : 5
-  
-  const team1Players: { [key: string]: string } = {}
-  const team1Coaches: { [key: string]: string } = {}
-  
-  match.team1.players.forEach(player => {
-    if (player.coach) {
-      team1Coaches[player.user.steamId] = player.user.name
-    } else {
-      team1Players[player.user.steamId] = player.user.name
+
+  // Handle Team 1
+  let team1Players: { [key: string]: string } = {}
+  let team1Coaches: { [key: string]: string } = {}
+  let team1Config: TeamConfig
+
+  if (match.team1) {
+    match.team1.players.forEach(player => {
+      if (player.coach) {
+        team1Coaches[player.user.steamId] = player.user.name
+      } else {
+        team1Players[player.user.steamId] = player.user.name
+      }
+    })
+
+    team1Config = {
+      name: match.team1.name,
+      tag: match.team1.tag || undefined,
+      flag: match.team1.flag || undefined,
+      logo: match.team1.logo || undefined,
+      players: team1Players,
+      coaches: Object.keys(team1Coaches).length > 0 ? team1Coaches : undefined,
     }
-  })
-  
-  const team2Players: { [key: string]: string } = {}
-  const team2Coaches: { [key: string]: string } = {}
-  
-  match.team2.players.forEach(player => {
-    if (player.coach) {
-      team2Coaches[player.user.steamId] = player.user.name
-    } else {
-      team2Players[player.user.steamId] = player.user.name
+  } else {
+    // Create placeholder team
+    team1Config = {
+      name: 'Team 1',
+      players: {},
     }
-  })
-  
+  }
+
+  // Handle Team 2
+  let team2Players: { [key: string]: string } = {}
+  let team2Coaches: { [key: string]: string } = {}
+  let team2Config: TeamConfig
+
+  if (match.team2) {
+    match.team2.players.forEach(player => {
+      if (player.coach) {
+        team2Coaches[player.user.steamId] = player.user.name
+      } else {
+        team2Players[player.user.steamId] = player.user.name
+      }
+    })
+
+    team2Config = {
+      name: match.team2.name,
+      tag: match.team2.tag || undefined,
+      flag: match.team2.flag || undefined,
+      logo: match.team2.logo || undefined,
+      players: team2Players,
+      coaches: Object.keys(team2Coaches).length > 0 ? team2Coaches : undefined,
+    }
+  } else {
+    // Create placeholder team
+    team2Config = {
+      name: 'Team 2',
+      players: {},
+    }
+  }
+
   return {
     matchid: match.id,
-    match_title: `Match ${match.id}`,
+    match_title: match.team1 && match.team2 ? `${match.team1.name} vs ${match.team2.name}` : `Match ${match.id}`,
     clinch_series: true,
     num_maps: numMaps,
     players_per_team: 5,
@@ -87,22 +125,8 @@ export function generateMatchConfig(
     skip_veto: false,
     side_type: match.knifeRound ? 'knife' : 'standard',
     maplist: jsonToStringArray(match.mapPool),
-    team1: {
-      name: match.team1.name,
-      tag: match.team1.tag || undefined,
-      flag: match.team1.flag || undefined,
-      logo: match.team1.logo || undefined,
-      players: team1Players,
-      coaches: Object.keys(team1Coaches).length > 0 ? team1Coaches : undefined,
-    },
-    team2: {
-      name: match.team2.name,
-      tag: match.team2.tag || undefined,
-      flag: match.team2.flag || undefined,
-      logo: match.team2.logo || undefined,
-      players: team2Players,
-      coaches: Object.keys(team2Coaches).length > 0 ? team2Coaches : undefined,
-    },
+    team1: team1Config,
+    team2: team2Config,
     cvars: {
       get5_web_api_url: apiUrl,
       get5_web_api_key: match.apiKey,
@@ -117,31 +141,29 @@ export function generateMatchConfig(
 
 export function validateMatchConfig(config: MatchConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = []
-  
+
   if (!config.matchid) {
     errors.push('Match ID is required')
   }
-  
+
   if (!config.team1 || !config.team2) {
     errors.push('Both teams are required')
   }
-  
-  if (!config.team1?.players || Object.keys(config.team1.players).length === 0) {
-    errors.push('Team 1 must have at least one player')
+
+  // Only validate players if teams have player data
+  const hasPlayers = config.team1?.players && Object.keys(config.team1.players).length > 0
+  if (!hasPlayers) {
+    console.warn('Match has no player data - this is a veto-only match')
   }
-  
-  if (!config.team2?.players || Object.keys(config.team2.players).length === 0) {
-    errors.push('Team 2 must have at least one player')
-  }
-  
+
   if (!config.maplist || config.maplist.length === 0) {
     errors.push('Map pool is required')
   }
-  
+
   if (config.num_maps < 1 || config.num_maps > 5) {
     errors.push('Number of maps must be between 1 and 5')
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
