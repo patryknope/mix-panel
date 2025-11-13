@@ -196,53 +196,57 @@ export default function CreateMatchPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <Card
-              className="cursor-pointer hover:border-primary transition-colors"
+            <div
+              className="cursor-pointer"
               onClick={() => setMode('quick-veto')}
             >
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <Zap className="h-8 w-8 text-yellow-500" />
-                  <CardTitle>Quick Veto</CardTitle>
-                </div>
-                <CardDescription>
-                  Create a map veto without defining teams. Perfect for quick scrims or
-                  pugs where you just need to pick/ban maps.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• No team setup required</li>
-                  <li>• Fast map veto process</li>
-                  <li>• Can add teams later</li>
-                  <li>• Great for casual matches</li>
-                </ul>
-              </CardContent>
-            </Card>
+              <Card className="hover:border-primary transition-colors h-full">
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <Zap className="h-8 w-8 text-yellow-500" />
+                    <CardTitle>Quick Veto</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Create a map veto without defining teams. Perfect for quick scrims or
+                    pugs where you just need to pick/ban maps.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• No team setup required</li>
+                    <li>• Fast map veto process</li>
+                    <li>• Can add teams later</li>
+                    <li>• Great for casual matches</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card
-              className="cursor-pointer hover:border-primary transition-colors"
+            <div
+              className="cursor-pointer"
               onClick={() => setMode('with-teams')}
             >
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <Trophy className="h-8 w-8 text-blue-500" />
-                  <CardTitle>Match with Teams</CardTitle>
-                </div>
-                <CardDescription>
-                  Full match setup with team selection, player tracking, and complete
-                  statistics. Best for competitive matches.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Full team management</li>
-                  <li>• Player statistics tracking</li>
-                  <li>• Match history</li>
-                  <li>• Complete configuration</li>
-                </ul>
-              </CardContent>
-            </Card>
+              <Card className="hover:border-primary transition-colors h-full">
+                <CardHeader>
+                  <div className="flex items-center space-x-3">
+                    <Trophy className="h-8 w-8 text-blue-500" />
+                    <CardTitle>Match with Teams</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Full match setup with team selection, player tracking, and complete
+                    statistics. Best for competitive matches.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Full team management</li>
+                    <li>• Player statistics tracking</li>
+                    <li>• Match history</li>
+                    <li>• Complete configuration</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </main>
       </div>
