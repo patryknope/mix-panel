@@ -6,8 +6,9 @@ import prisma from '@/lib/prisma'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft, Copy, Trophy, Server, Circle } from 'lucide-react'
+import { ArrowLeft, Trophy, Server, Circle } from 'lucide-react'
 import { Prisma } from '@prisma/client'
+import { CopyButton } from '@/components/copy-button'
 
 function jsonToStringArray(json: Prisma.JsonValue): string[] {
   if (Array.isArray(json)) {
@@ -204,15 +205,7 @@ export default async function MatchDetailPage({
                     readOnly
                     className="flex-1 px-3 py-2 bg-secondary rounded text-sm font-mono"
                   />
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(configUrl)
-                      alert('Config URL copied!')
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                  <CopyButton text={configUrl} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   Use: <code className="bg-secondary px-1 rounded">get5_loadmatch_url "{configUrl}"</code>
