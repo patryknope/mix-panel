@@ -16,11 +16,9 @@ function jsonToStringArray(json: Prisma.JsonValue): string[] {
   return []
 }
 
-async function getMatches(userId: string) {
+async function getMatches() {
   const matches = await prisma.match.findMany({
-    where: {
-      creatorId: userId,
-    },
+    where: {},
     include: {
       team1: true,
       team2: true,
@@ -41,7 +39,7 @@ export default async function MatchesPage() {
     redirect('/')
   }
 
-  const matches = await getMatches(session.user.id)
+  const matches = await getMatches()
 
   const getStatusColor = (status: string) => {
     switch (status) {

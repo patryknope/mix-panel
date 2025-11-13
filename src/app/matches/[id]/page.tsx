@@ -16,11 +16,10 @@ function jsonToStringArray(json: Prisma.JsonValue): string[] {
   return []
 }
 
-async function getMatch(matchId: string, userId: string) {
+async function getMatch(matchId: string) {
   const match = await prisma.match.findFirst({
     where: {
       id: matchId,
-      creatorId: userId,
     },
     include: {
       team1: {
@@ -65,7 +64,7 @@ export default async function MatchDetailPage({
     redirect('/')
   }
 
-  const match = await getMatch(params.id, session.user.id)
+  const match = await getMatch(params.id)
 
   if (!match) {
     return (

@@ -46,17 +46,28 @@ export async function GET(req: NextRequest) {
       }
 
       // Get Steam user info
-      const playerResponse = await axios.get(
-        'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/',
-        {
-          params: {
-            key: process.env.STEAM_API_KEY,
-            steamids: steamId,
-          },
-        }
-      )
+      let player
+      try {
+        const playerResponse = await axios.get(
+          'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/',
+          {
+            params: {
+              key: process.env.STEAM_API_KEY,
+              steamids: steamId,
+            },
+          }
+        )
 
-      const player = playerResponse.data.response.players[0]
+        player = playerResponse.data.response.players[0]
+      } catch (apiError: any) {
+        console.error('Steam API error:', apiError.response?.data || apiError.message)
+        // Continue without player data if API fails
+        player = {
+          personaname: `Player_${steamId.slice(-4)}`,
+          avatarfull: '',
+        }
+      }
+
       if (!player) {
         return NextResponse.redirect(new URL('/?error=player_not_found', req.url))
       }

@@ -9,25 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Locale, locales, localeNames } from '@/i18n/config'
-import { useRouter, usePathname } from 'next/navigation'
-import Cookies from 'js-cookie'
+import { locales, localeNames } from '@/i18n/config'
+import { useLanguage } from '@/contexts/language-context'
 
 export function LanguageSwitcher() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [currentLocale, setCurrentLocale] = React.useState<Locale>(() => {
-    if (typeof window !== 'undefined') {
-      return (Cookies.get('NEXT_LOCALE') as Locale) || 'en'
-    }
-    return 'en'
-  })
-
-  const switchLanguage = (locale: Locale) => {
-    setCurrentLocale(locale)
-    Cookies.set('NEXT_LOCALE', locale, { expires: 365 })
-    router.refresh()
-  }
+  const { locale, setLocale } = useLanguage()
 
   return (
     <DropdownMenu>
@@ -38,13 +24,13 @@ export function LanguageSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {locales.map((locale) => (
+        {locales.map((loc) => (
           <DropdownMenuItem
-            key={locale}
-            onClick={() => switchLanguage(locale)}
-            className={currentLocale === locale ? 'bg-accent' : ''}
+            key={loc}
+            onClick={() => setLocale(loc as any)}
+            className={locale === loc ? 'bg-accent' : ''}
           >
-            {localeNames[locale]}
+            {localeNames[loc]}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
